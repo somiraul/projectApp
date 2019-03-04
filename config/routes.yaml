@@ -1,0 +1,14 @@
+index:
+    path: /
+    controller: App\Controller\WebsiteController::index
+
+register:
+    path: register
+    controller: App\Controller\WebsiteController::register
+
+profile:
+    path: profile
+    controller: App\Controller\WebsiteController::profile
+
+user_logout:
+    path: logout
