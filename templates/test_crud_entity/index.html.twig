@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TestCrudEntity index{% endblock %}
+
+{% block body %}
+    <h1>TestCrudEntity index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Column_1</th>
+                <th>Column_2</th>
+                <th>Column_3</th>
+                <th>Column_4</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for test_crud_entity in test_crud_entities %}
+            <tr>
+                <td>{{ test_crud_entity.id }}</td>
+                <td>{{ test_crud_entity.column1 }}</td>
+                <td>{{ test_crud_entity.column2 }}</td>
+                <td>{{ test_crud_entity.column3 }}</td>
+                <td>{{ test_crud_entity.column4 ? test_crud_entity.column4|json_encode : '' }}</td>
+                <td>
+                    <a href="{{ path('test_crud_entity_show', {'id': test_crud_entity.id}) }}">show</a>
+                    <a href="{{ path('test_crud_entity_edit', {'id': test_crud_entity.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('test_crud_entity_new') }}">Create new</a>
+{% endblock %}

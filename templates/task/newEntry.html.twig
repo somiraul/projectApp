@@ -1,0 +1,140 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    Add Entry
+{% endblock %}
+
+{% block stylesheets %}
+
+    <link rel="stylesheet" type="text/css" href="{{ asset('asset/table_v2/css/util.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('asset/table_v2/css/main.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ asset('asset/dashboard/assets/css/light-bootstrap-dashboard.css?v=1.4.0') }}">
+
+    <style>
+
+        body {
+            background: #c4d3f6;
+        }
+
+    </style>
+
+{% endblock %}
+
+{% block body %}
+    <input type="hidden" value="{{ data.task.id }}" id="_projectId">
+    <div class="limiter">
+        <div class="container-table100">
+            <div class="wrap-table100">
+                <div class="table">
+
+                    <div class="row header">
+
+                        <div class="cell">
+                            Project Name
+                        </div>
+                        <div class="cell">
+                            Start Date
+                        </div>
+                        <div class="cell">
+                            End Date
+                        </div>
+                        <div class="cell">
+                            Action
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+                        <div class="cell">
+                            {{ data.task.projectName }}
+                        </div>
+                        <div class="cell">
+                            {{ data.task.startDate|date }}
+                        </div>
+                        <div class="cell">
+                            {{ data.task.endDate|date }}
+                        </div>
+                        <div class="cell">
+                            <div class="timer well"></div>
+                            <button class="btn btn-default" onClick="$('.timer').countimer('start');" id="_start">Start</button>
+                            <button class="btn btn-warning" onClick="$('.timer').countimer('stop');" id="_stop">Stop</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="limiter">
+        <div class="container-table100">
+            <div class="wrap-table100">
+                <div class="table" id="entryDatas">
+
+                    <div class="row header">
+
+                        <div class="cell">
+                            Entries
+                        </div>
+
+                    </div>
+
+                    {% for dataKey, dataValue in data  %}
+                        {% for entryKey, entryValue in dataValue %}
+                            <div class="row">
+                                <div class="cell" data-title="Full Name">
+                                    {{ entryValue.entry|date('H:i:s') }}
+                                </div>
+                                <div class="cell" data-title="Full Name">
+                                    {{ entryValue.dateCreated|date('Y/m/d') }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+
+    <script src="{{ asset('asset/countimer/dist/ez.countimer.js') }}"></script>
+    <script type="text/javascript">
+
+        $( document ).ready(function() {
+            $('.timer').countimer({
+                autoStart : false
+            });
+
+            $("#_stop").click(function () {
+                var entry = $(".timer").html();
+                var projectId = $("#_projectId").val();
+                console.log(projectId);
+
+                $.ajax({
+                   method: 'POST',
+                   url: "{{ path('new_entry') }}",
+                   data: {
+                       entry: entry,
+                       projectId: projectId
+                   },
+                   success: function (response) {
+                       console.log(response);
+                       // alert(response);
+                       $("#entryDatas").load(" #entryDatas");
+                   }
+                });
+
+            });
+
+        });
+
+    </script>
+
+{% endblock %}

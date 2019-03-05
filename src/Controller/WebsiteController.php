@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Task;
 use App\Entity\User;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -46,7 +47,15 @@ class WebsiteController extends AbstractController
     public function profile()
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-        return $this->render('website/profile.html.twig');
+        $userId = $this->getUser()->getId();
+        $repository = $this->getDoctrine()->getRepository(Task::class);
+        $tasks = $repository->findBy(['user_id' => $userId]);
+
+        return $this->render('website/profile.html.twig',  array('tasks' => $tasks));
     }
 
+    public function UserProfile()
+    {
+        return $this->render('website/userProfile.html.twig');
+    }
 }

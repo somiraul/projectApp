@@ -7,8 +7,28 @@ register:
     controller: App\Controller\WebsiteController::register
 
 profile:
-    path: profile
+    path: dashboard
     controller: App\Controller\WebsiteController::profile
 
 user_logout:
     path: logout
+
+add_new_project:
+    path: addNewProject
+    controller: App\Controller\TaskController::addProjectView
+
+addProject:
+  path: addProject
+  controller: App\Controller\TaskController::addProject
+
+add_entry:
+    path: addEntry/{taskId}
+    controller: App\Controller\EntryController::entryView
+
+new_entry:
+  path: newEntry
+  controller: App\Controller\EntryController::newEntry
+
+user_profile:
+  path: profile
+  controller: App\Controller\WebsiteController::UserProfile

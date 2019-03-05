@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New TestCrudEntity{% endblock %}
+
+{% block body %}
+    <h1>Create new TestCrudEntity</h1>
+
+    {{ include('test_crud_entity/_form.html.twig') }}
+
+    <a href="{{ path('test_crud_entity_index') }}">back to list</a>
+{% endblock %}

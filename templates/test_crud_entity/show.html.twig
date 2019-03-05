@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TestCrudEntity{% endblock %}
+
+{% block body %}
+    <h1>TestCrudEntity</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ test_crud_entity.id }}</td>
+            </tr>
+            <tr>
+                <th>Column_1</th>
+                <td>{{ test_crud_entity.column1 }}</td>
+            </tr>
+            <tr>
+                <th>Column_2</th>
+                <td>{{ test_crud_entity.column2 }}</td>
+            </tr>
+            <tr>
+                <th>Column_3</th>
+                <td>{{ test_crud_entity.column3 }}</td>
+            </tr>
+            <tr>
+                <th>Column_4</th>
+                <td>{{ test_crud_entity.column4 ? test_crud_entity.column4|json_encode : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('test_crud_entity_index') }}">back to list</a>
+
+    <a href="{{ path('test_crud_entity_edit', {'id': test_crud_entity.id}) }}">edit</a>
+
+    {{ include('test_crud_entity/_delete_form.html.twig') }}
+{% endblock %}
