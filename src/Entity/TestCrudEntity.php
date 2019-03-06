@@ -36,6 +36,11 @@ class TestCrudEntity
      */
     private $column_4;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $password;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -85,6 +90,18 @@ class TestCrudEntity
     public function setColumn4($column_4): self
     {
         $this->column_4 = $column_4;
+
+        return $this;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): self
+    {
+        $this->password = $password;
 
         return $this;
     }

@@ -26,7 +26,7 @@
                 </div>
 
                 <ul class="nav">
-                    <li class="active">
+                    <li>
                         <a href="{{ path('profile') }}">
                             <i class="pe-7s-graph"></i>
                             <p>Dashboard</p>
@@ -173,6 +173,9 @@
                                     <div class="cell">
                                         Entries
                                     </div>
+                                    <div class="cell">
+                                        Summary
+                                    </div>
                                 </div>
 
 
@@ -190,6 +193,9 @@
                                     <div class="cell" data-title="Location">
                                         <a href="{{ path('add_entry', {'taskId': task.id}) }}" class="btn btn-warning"> Show </a>
                                         <a href="{{ path('add_entry', {'taskId': task.id}) }}" class="btn btn-success"> New </a>
+                                    </div>
+                                    <div class="cell">
+                                        <p id="timeSummary">TestData</p>
                                     </div>
                                 </div>
                                 {% endfor %}

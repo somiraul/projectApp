@@ -83,11 +83,11 @@
                     {% for dataKey, dataValue in data  %}
                         {% for entryKey, entryValue in dataValue %}
                             <div class="row">
-                                <div class="cell" data-title="Full Name">
-                                    {{ entryValue.entry|date('H:i:s') }}
+                                <div class="cell totalTimePerDay">
+                                   {{ entryValue.entry|date('H:i:s') }}
                                 </div>
-                                <div class="cell" data-title="Full Name">
-                                    {{ entryValue.dateCreated|date('Y/m/d') }}
+                                <div class="cell">
+                                   {{ entryValue.dateCreated|date('Y/m/d') }}
                                 </div>
                             </div>
                         {% endfor %}
@@ -126,14 +126,17 @@
                    },
                    success: function (response) {
                        console.log(response);
-                       // alert(response);
                        $("#entryDatas").load(" #entryDatas");
                    }
                 });
-
             });
 
+            var time = $('.totalTimePerDay').map(function() {
+                return this.html;
+            }).get();
+            console.log(time);
         });
+
 
     </script>
 
