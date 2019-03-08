@@ -3,21 +3,25 @@
 namespace App\Controller;
 
 use App\Entity\Task;
+use App\Entity\TestImageUploadResized;
 use App\Entity\User;
+use App\Service\ImageManagementService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class WebsiteController extends AbstractController
 {
     private $passwordEncoder;
+    private $imageManager;
 
-    public function __construct(UserPasswordEncoderInterface $passwordEncoder)
+    public function __construct(UserPasswordEncoderInterface $passwordEncoder, ImageManagementService $imageManager)
     {
          $this->passwordEncoder = $passwordEncoder;
+         $this->imageManager = $imageManager;
     }
 
     /**
@@ -30,18 +34,22 @@ class WebsiteController extends AbstractController
 
     public function register(Request $request)
     {
-        $data = $request->request->all();
-        $entityManager = $this->getDoctrine()->getManager();
+        if ($request->getMethod() == 'POST' && !empty($request->request))
+        {
+            $data = $request->request->all();
+            $entityManager = $this->getDoctrine()->getManager();
 
-        $user = new User();
-        $user->setFirstName($data['firstName']);
-        $user->setLastName($data['lastName']);
-        $user->setEmail($data['email']);
-        $user->setPassword($this->passwordEncoder->encodePassword($user, $data['password']));
-        $entityManager->persist($user);
-        $entityManager->flush();
+            $user = new User();
+            $user->setFirstName($data['firstName']);
+            $user->setLastName($data['lastName']);
+            $user->setEmail($data['email']);
+            $user->setPassword($this->passwordEncoder->encodePassword($user, $data['password']));
+            $entityManager->persist($user);
+            $entityManager->flush();
 
-        return new Response('Successfully Registered');
+            return new Response('Successfully Registered');
+        }
+
 
     }
 
@@ -67,7 +75,6 @@ class WebsiteController extends AbstractController
 
     public function updateUserProfile(Request $request)
     {
-//        var_dump($request->files->get('_profilePicture')); die();
         $entityManager = $this->getDoctrine()->getManager();
 
         $userId = $this->getUser()->getId();
@@ -121,5 +128,62 @@ class WebsiteController extends AbstractController
         return md5(uniqid());
     }
 
+    public function imageCropper()
+    {
+        list($usec, $sec) = explode(" ", microtime());
+        $time = (float)$sec;
+        $sessionTime = date('H:i:s', $time);
+//        dd(date('H:i:s', $time));
+        return $this->render('test_crud_entity/cropperTest.html.twig', ['sessionTime' => $sessionTime]);
+    }
+
+    public function croppedImageUploader(Request $request)
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+
+        $file = new TestImageUploadResized();
+        $image = $request->files->get('croppedImage');
+        $fileName = $this->generateUniqueFileName().'.'.$image->guessExtension();
+        $imageSize = $this->generateImageSizes($image, $ratio);
+        $image->move($this->getParameter('profilePictures'), $fileName);
+        $file->setImageName($fileName);
+        $entityManager->persist($file);
+        $entityManager->flush();
+
+        return new Response('TestResponse');
+    }
+
+    public function generateImageSizes(UploadedFile $file, $ratio) {
+
+        if($ratio == '16:9'){
+            $sizes =   array (
+                "small"  => array(500,280),
+                "medium" => array(750,420),
+                "large"  => array(1500,840)
+            );
+
+
+            foreach ($sizes as $key => list($w, $h)) {
+                $this->imageManager->resize_image($file, $w, $h, $key);
+            }
+        } elseif($ratio == '4:3'){
+            $sizes =   array (
+                "small"  => array(300,225),
+                "medium" => array(700,525),
+                "large"  => array(1400,1050)
+            );
+
+            foreach ($sizes as $key => list($w, $h)) {
+                $this->imageManager->resize_image($file, $w, $h, $key);
+            }
+        } else {
+            list($width, $height) = getimagesize($file);
+
+            $this->imageManager->resize_image($file, $width, $height, 'large');
+            $this->imageManager->resize_image($file, $width/2, $height/2, 'medium');
+            $this->imageManager->resize_image($file, $width/3, $height/3, 'small');
+
+        }
+    }
 
 }

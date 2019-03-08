@@ -1,0 +1,91 @@
+{% extends 'base.html.twig' %}
+
+
+{% block stylesheets %}
+
+    <link rel="stylesheet" href="{{ asset('cropper/css/cropper.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.4.3/cropper.css">
+    <style>
+
+        #cropperImage {
+            max-width: 100%; /* This rule is very important, please do not ignore this! */
+        }
+
+    </style>
+
+{% endblock %}
+
+{% block body %}
+
+    <h1>Cropper TestPage</h1>
+    <input type="file" id="sourceImage">
+    <button id="getSourceImage" type="button"> Click this </button>
+    <img id="cropperImage" src="{{ asset('uploads/profilePictures/testGif.gif') }}" alt="tobeCropped">
+    <button id="save" type="button"> Save </button>
+
+   <p id="sessionTime">{{ sessionTime|date('s') }}</p>
+
+{% endblock %}
+
+{% block javascripts %}
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.4.3/cropper.js"></script>
+    <script src="{{ asset('cropper/js/jquery-cropper.js') }}"></script>
+
+    <script>
+
+        $(document).ready(function () {
+           console.log('JQUERY Working');
+
+            var image = document.getElementById('cropperImage');
+            var aspectRatio = 16 / 9;
+            //initialize cropper
+            var cropper = new Cropper(image, {
+                crop(event) {
+                    console.log('x = '+event.detail.x);
+                    console.log('y ='+event.detail.y);
+                    console.log('width = '+event.detail.width);
+                    console.log('heigh = '+event.detail.height);
+                    console.log('rotate = '+event.detail.rotate);
+                    console.log('scaleX = '+event.detail.scaleX);
+                    console.log('scaleY = '+event.detail.scaleY);
+                },
+            });
+
+            var imageRatio = cropper.getImageData('aspectRatio');
+
+           {#$("#save").click(function () {#}
+
+               {#$("#cropperImage").cropper('getCroppedCanvas').toBlob(function (blob) {#}
+                   {#var formData = new FormData();#}
+                   {#formData.append('croppedImage', blob);#}
+
+                   {#$.ajax({#}
+                      {#method: 'POST',#}
+                      {#url: "{{ path('imageCropperUrl') }}",#}
+                      {#data: formData,#}
+                      {#processData: false,#}
+                      {#contentType: false,#}
+                      {#success: function (response) {#}
+                          {#console.log(response);#}
+                      {#},#}
+                      {#error: function () {#}
+                          {#console.log('Failed !');#}
+                      {#}#}
+                   {#});#}
+
+               {#});#}
+           {#});#}
+
+
+           $("#getSourceImage").click(function () {
+               var sourceImage  = $("#sourceImage").val();
+               console.log(sourceImage);
+           });
+
+        });
+
+    </script>
+
+{% endblock %}

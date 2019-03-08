@@ -36,3 +36,12 @@ user_profile:
 updateUser:
   path: userUpdate
   controller: App\Controller\WebsiteController::updateUserProfile
+
+
+imageCropper:
+  path: ImageCropper
+  controller: App\Controller\WebsiteController::imageCropper
+
+imageCropperUrl:
+  path: uploadCroppedImage
+  controller: App\Controller\WebsiteController::croppedImageUploader
