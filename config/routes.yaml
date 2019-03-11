@@ -45,3 +45,7 @@ imageCropper:
 imageCropperUrl:
   path: uploadCroppedImage
   controller: App\Controller\WebsiteController::croppedImageUploader
+
+#another_test:
+#  path: anotherTest
+#  controller: App\Controller\WebsiteController::testCropAfterUpload

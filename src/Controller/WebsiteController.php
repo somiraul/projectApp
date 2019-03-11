@@ -12,6 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class WebsiteController extends AbstractController
 {
@@ -104,6 +105,7 @@ class WebsiteController extends AbstractController
 
             if($request->files->get('_profilePicture'))
             {
+//                var_dump($request->files->get('_profilePicture')); die();
                 $file = $request->files->get('_profilePicture');
                 $fileName = $this->generateUniqueFileName().'.'.$file->guessExtension();
                 $file->move($this->getParameter('profilePictures'), $fileName);
@@ -130,10 +132,9 @@ class WebsiteController extends AbstractController
 
     public function imageCropper()
     {
-        list($usec, $sec) = explode(" ", microtime());
+        list($non, $sec) = explode(" ", microtime());
         $time = (float)$sec;
         $sessionTime = date('H:i:s', $time);
-//        dd(date('H:i:s', $time));
         return $this->render('test_crud_entity/cropperTest.html.twig', ['sessionTime' => $sessionTime]);
     }
 
@@ -141,16 +142,45 @@ class WebsiteController extends AbstractController
     {
         $entityManager = $this->getDoctrine()->getManager();
 
-        $file = new TestImageUploadResized();
-        $image = $request->files->get('croppedImage');
-        $fileName = $this->generateUniqueFileName().'.'.$image->guessExtension();
-        $imageSize = $this->generateImageSizes($image, $ratio);
-        $image->move($this->getParameter('profilePictures'), $fileName);
-        $file->setImageName($fileName);
-        $entityManager->persist($file);
-        $entityManager->flush();
 
-        return new Response('TestResponse');
+        $image = $request->files->get('croppedImage');
+
+        if ($image->isValid())
+        {
+            $file = new TestImageUploadResized();
+            $fileName = $this->generateUniqueFileName().'.'.$image->guessExtension();
+            $image->move($this->getParameter('profilePictures'), $fileName);
+
+            $file->setImageName($fileName);
+            $entityManager->persist($file);
+            die('died After persist');
+            $entityManager->flush();
+
+            var_dump($file->getFile()); die();
+        }
+
+
+//        $ratioFirstValue = gmp_intval($width) / gmp_intval($greatestCommonDivisor);
+//        $ratioSecondValue = gmp_intval($height) / gmp_intval($greatestCommonDivisor);
+//        $ratio = gmp_intval($ratioFirstValue) . ':' . gmp_intval($ratioSecondValue);
+//        $imageSizes = $this->generateImageSizes($image, $ratio);
+
+        $source = 'uploads/profilePictures/';
+        $uploadedImage = $source . $fileName;
+
+        //get Width and height
+        list($width, $height) = getimagesize($uploadedImage);
+        $gcd = gmp_gcd($width, $height);
+
+        //get Image Ratio
+        $ratioWidth = intval($width) / intval($gcd);
+        $ratioHeight = intval($height) / intval($gcd);
+        $ratio = intval($ratioWidth) . ':' . intval($ratioHeight);
+
+        //generating Image Sizes
+        $imageSizes = $this->generateImageSizes($uploadedImage, $ratio);
+
+        return new Response('Successfully Moved');
     }
 
     public function generateImageSizes(UploadedFile $file, $ratio) {
@@ -185,5 +215,14 @@ class WebsiteController extends AbstractController
 
         }
     }
+
+//    public function testCropAfterUpload()
+//    {
+//        calling Image file from controller
+//        $file = 'uploads/profilePictures/d6012cf3d3e138184c605818b677e686.png';
+//        $response = new BinaryFileResponse($file);
+//        // you can modify headers here, before returning
+//        return $response;
+//    }
 
 }
