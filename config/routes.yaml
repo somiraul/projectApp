@@ -46,6 +46,14 @@ imageCropperUrl:
   path: uploadCroppedImage
   controller: App\Controller\WebsiteController::croppedImageUploader
 
-#another_test:
-#  path: anotherTest
-#  controller: App\Controller\WebsiteController::testCropAfterUpload
+document:
+  path: documentUpload
+  controller: App\Controller\DocumentController::index
+
+documentSubmit:
+  path: documentSubmit
+  controller: App\Controller\DocumentController::uploadAction
+
+form:
+  path: form
+  controller: App\Controller\WebsiteController::testFormForFileObject

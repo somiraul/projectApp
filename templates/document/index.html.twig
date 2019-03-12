@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+
+{% block body %}
+
+    <form action="{{ path('documentSubmit') }}">
+
+        <input type="file" name="fileName">
+
+        <button type="submit">submit</button>
+
+    </form>
+
+{% endblock %}

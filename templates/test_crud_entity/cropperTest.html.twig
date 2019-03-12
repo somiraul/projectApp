@@ -33,6 +33,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.4.3/cropper.js"></script>
     <script src="{{ asset('cropper/js/jquery-cropper.js') }}"></script>
 
+
+
     <script>
 
         $(document).ready(function () {
@@ -51,11 +53,16 @@
                 },
             });
 
+            //getting Image originalName
+            var croppedImageName = $("#cropperImage").attr('src'); //getting image attribute including dir
+            var parsedCroppedImageName = croppedImageName.split("/"); //converting to array
+            console.log(parsedCroppedImageName[3]); //accessing original filename including original extension
+
             $("#save").click(function () {
                 cropper.getCroppedCanvas().toBlob((blob) => {
                     var formData = new FormData();
 
-                    formData.append('croppedImage', blob);
+                    formData.append('croppedImage', blob, parsedCroppedImageName[3]);
 
                     $.ajax("{{ path('imageCropperUrl') }}", {
                         method: "POST",

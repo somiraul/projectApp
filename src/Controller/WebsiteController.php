@@ -3,8 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Task;
-use App\Entity\TestImageUploadResized;
 use App\Entity\User;
+use App\Entity\TestImageUploadResized;
 use App\Service\ImageManagementService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,16 +13,24 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+
 
 class WebsiteController extends AbstractController
 {
     private $passwordEncoder;
     private $imageManager;
+    private $filename;
+    private $objectArray = [];
+    private $dstPath;
 
     public function __construct(UserPasswordEncoderInterface $passwordEncoder, ImageManagementService $imageManager)
     {
-         $this->passwordEncoder = $passwordEncoder;
-         $this->imageManager = $imageManager;
+         $this->objectArray['passwordEncoder'] = $this->passwordEncoder = $passwordEncoder;
+         $this->objectArray['imageManager'] = $this->imageManager = $imageManager;
+
+         return $this->objectArray;
     }
 
     /**
@@ -44,7 +52,7 @@ class WebsiteController extends AbstractController
             $user->setFirstName($data['firstName']);
             $user->setLastName($data['lastName']);
             $user->setEmail($data['email']);
-            $user->setPassword($this->passwordEncoder->encodePassword($user, $data['password']));
+            $user->setPassword($this->objectArray['passwordEncoder']->encodePassword($user, $data['password']));
             $entityManager->persist($user);
             $entityManager->flush();
 
@@ -100,12 +108,11 @@ class WebsiteController extends AbstractController
 
             if ($request->request->get('_password'))
             {
-                $user->setPassword($this->passwordEncoder->encodePassword($user, $request->request->get('_password')));
+                $user->setPassword($this->objectArray['passwordEncoder']->encodePassword($user, $request->request->get('_password')));
             }
 
             if($request->files->get('_profilePicture'))
             {
-//                var_dump($request->files->get('_profilePicture')); die();
                 $file = $request->files->get('_profilePicture');
                 $fileName = $this->generateUniqueFileName().'.'.$file->guessExtension();
                 $file->move($this->getParameter('profilePictures'), $fileName);
@@ -138,52 +145,76 @@ class WebsiteController extends AbstractController
         return $this->render('test_crud_entity/cropperTest.html.twig', ['sessionTime' => $sessionTime]);
     }
 
+    public function testFormForFileObject(Request $fileRequest)
+    {
+
+        $testImageUploadResized = new TestImageUploadResized();
+
+        $form = $this->createFormBuilder($testImageUploadResized)
+            ->add('ImageUpload', FileType::class, ['mapped' => false])
+            ->add('save', SubmitType::class, ['label' => 'submit'])
+            ->getForm();
+
+        $form->handleRequest($fileRequest);
+
+
+        if ($form->isSubmitted() && $form->isSubmitted())
+        {
+
+            var_dump($fileRequest->files->get('form')["ImageUpload"]);
+            die;
+
+        }
+
+        return $this->render('file/index.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }
+
+
     public function croppedImageUploader(Request $request)
     {
         $entityManager = $this->getDoctrine()->getManager();
+        $file = new TestImageUploadResized();
+        $this->dstPath = $this->getParameter('profilePictures');
 
-
-        $image = $request->files->get('croppedImage');
-
-        if ($image->isValid())
+        if ($request->files->get('croppedImage')->isValid())
         {
-            $file = new TestImageUploadResized();
-            $fileName = $this->generateUniqueFileName().'.'.$image->guessExtension();
-            $image->move($this->getParameter('profilePictures'), $fileName);
+            $this->filename = $this->generateUniqueFileName().'.'.$request->files->get('croppedImage')->guessExtension();
 
-            $file->setImageName($fileName);
+            $file->setImageName($this->filename);
+            $file->setPath($this->dstPath);
             $entityManager->persist($file);
-            die('died After persist');
             $entityManager->flush();
 
-            var_dump($file->getFile()); die();
+            $request->files->get('croppedImage')->move($this->dstPath, $this->filename);
+
+            $uploadedImageFile = new UploadedFile($this->dstPath . $this->filename, $this->filename);
+
+            $this->getImageForCropping($uploadedImageFile);
+            return new Response('croppedImageUploader worked !');
         }
 
+        return new  Response('croppedImageUploader Failed');
 
-//        $ratioFirstValue = gmp_intval($width) / gmp_intval($greatestCommonDivisor);
-//        $ratioSecondValue = gmp_intval($height) / gmp_intval($greatestCommonDivisor);
-//        $ratio = gmp_intval($ratioFirstValue) . ':' . gmp_intval($ratioSecondValue);
-//        $imageSizes = $this->generateImageSizes($image, $ratio);
-
-        $source = 'uploads/profilePictures/';
-        $uploadedImage = $source . $fileName;
-
-        //get Width and height
-        list($width, $height) = getimagesize($uploadedImage);
-        $gcd = gmp_gcd($width, $height);
-
-        //get Image Ratio
-        $ratioWidth = intval($width) / intval($gcd);
-        $ratioHeight = intval($height) / intval($gcd);
-        $ratio = intval($ratioWidth) . ':' . intval($ratioHeight);
-
-        //generating Image Sizes
-        $imageSizes = $this->generateImageSizes($uploadedImage, $ratio);
-
-        return new Response('Successfully Moved');
     }
 
-    public function generateImageSizes(UploadedFile $file, $ratio) {
+    public function getImageForCropping(UploadedFile $filename)
+    {
+        //getting ImageSize
+        list($width, $height) = getimagesize($filename);
+        $gcd = gmp_gcd($width, $height);
+
+        //Get ImageRatio
+        $numerator = gmp_intval($width) / gmp_intval($gcd);
+        $denominator = gmp_intval($height) / gmp_intval($gcd);
+        $ratio = gmp_intval($numerator) . ':' . gmp_intval($denominator);
+
+        return $this->generateImageSizes($filename, $ratio);
+    }
+
+    public function generateImageSizes(UploadedFile $file, $ratio)
+    {
 
         if($ratio == '16:9'){
             $sizes =   array (
@@ -194,7 +225,7 @@ class WebsiteController extends AbstractController
 
 
             foreach ($sizes as $key => list($w, $h)) {
-                $this->imageManager->resize_image($file, $w, $h, $key);
+                $this->objectArray['imageManager']->resize_image($file, $w, $h, $key);
             }
         } elseif($ratio == '4:3'){
             $sizes =   array (
@@ -204,25 +235,16 @@ class WebsiteController extends AbstractController
             );
 
             foreach ($sizes as $key => list($w, $h)) {
-                $this->imageManager->resize_image($file, $w, $h, $key);
+                $this->objectArray['imageManager']->resize_image($file, $w, $h, $key);
             }
         } else {
             list($width, $height) = getimagesize($file);
 
-            $this->imageManager->resize_image($file, $width, $height, 'large');
-            $this->imageManager->resize_image($file, $width/2, $height/2, 'medium');
-            $this->imageManager->resize_image($file, $width/3, $height/3, 'small');
+            $this->objectArray['imageManager']->resize_image($file, $width, $height, 'large');
+            $this->objectArray['imageManager']->resize_image($file, $width/2, $height/2, 'medium');
+            $this->objectArray['imageManager']->resize_image($file, $width/3, $height/3, 'small');
 
         }
     }
-
-//    public function testCropAfterUpload()
-//    {
-//        calling Image file from controller
-//        $file = 'uploads/profilePictures/d6012cf3d3e138184c605818b677e686.png';
-//        $response = new BinaryFileResponse($file);
-//        // you can modify headers here, before returning
-//        return $response;
-//    }
 
 }

@@ -51,7 +51,7 @@ class ImageManagementService
 
         $dst = imagecreatetruecolor($newWidth, $newHeight);
 
-        $finalName = $path . '/generated/' . $name . '-' . $size . '.' . $ext;
+        $finalName = $path . $name . '-' . $size . '.' . $ext;
 
 
         if($ext == 'png' || $ext == 'PNG') {
